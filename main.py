@@ -1,11 +1,12 @@
 import asyncio
-import sqlite3
 from datetime import datetime, timedelta
+
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.utils import exceptions
-from db import get_event_by_page_number, check_user_registration, register_user, unregister_user, create_record, create_reminder_in_db
+
+from db import get_event_by_page_number, check_user_registration, register_user, unregister_user, create_record, create_reminder_in_db, checker
 from cfg import API_TOKEN
 
 
@@ -17,7 +18,10 @@ dp = Dispatcher(bot, storage=storage)
 @dp.callback_query_handler(text_startswith="page_prev")
 async def handle_prev_page(call: types.CallbackQuery):
     page_number = int(call.data.split(":")[1]) - 1
-    await update_page_markup(call.message, call.from_user['id'], call.id, page_number)
+    if page_number < 1:
+        await bot.answer_callback_query(callback_query_id=call.id, text="Такого мероприятия нет")
+    else:
+        await update_page_markup(call.message, call.from_user['id'], call.id, page_number)
 
 
 @dp.callback_query_handler(text_startswith="page_next")
@@ -68,9 +72,6 @@ async def update_page_markup(message, user_id, call_id, page_number):
         InlineKeyboardButton("Вперёд", callback_data=f"page_next:{page_number}")
     )
 
-    if not if_exists:
-        create_record(user_id, page_number)
-
     if is_registered:
         markup.row(InlineKeyboardButton("Анрег", callback_data=f"page_unregister:{page_number}"))
     else:
@@ -78,6 +79,8 @@ async def update_page_markup(message, user_id, call_id, page_number):
     markup.row(InlineKeyboardButton("Напомнить", callback_data=f"reminder:{page_number}"))
     text = str(get_event_by_page_number(page_number))
     if text != "None":
+        if not if_exists:
+            create_record(user_id, page_number)
         await message.edit_text(str(get_event_by_page_number(page_number)), reply_markup=markup)
     else:
         await bot.answer_callback_query(callback_query_id=call_id, text="Такого мероприятия нет")
@@ -89,8 +92,6 @@ async def process_reminder_callback(call: types.CallbackQuery):
     event = get_event_by_page_number(event_id)
     start_date = datetime.fromisoformat(event[3].replace('T', ' '))
     remind_time = start_date - timedelta(hours=1)
-
-    event_id = 1
     status = create_reminder_in_db(event_id, call.from_user['id'], remind_time)
     text = ""
     if status:
@@ -101,5 +102,31 @@ async def process_reminder_callback(call: types.CallbackQuery):
     await bot.answer_callback_query(callback_query_id=call.id, text=text)
 
 
+# Функция для проверки времени напоминания
+async def check_reminders():
+    while True:
+        user_id = checker()
+        if user_id is not None:
+            await send_reminder(user_id)
+        # Ждем 1 секунду перед следующей проверкой
+        await asyncio.sleep(1)
+
+
+# Функция для отправки напоминания (дописать напоминание чего)
+async def send_reminder(user_id):
+    try:
+        await bot.send_message(chat_id=user_id, text="Напоминание!")
+    except exceptions.BotBlocked:
+        print(f"Бот заблокирован пользователем {user_id}")
+    except exceptions.ChatNotFound:
+        print(f"Чат не найден, chat_id={user_id}")
+
+
+async def main():
+    await check_reminders()
+
+
 if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
+    loop.create_task(main())
     executor.start_polling(dp)

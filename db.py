@@ -76,3 +76,20 @@ def create_reminder_in_db(connection, event_id, chat_id, remind_time):
             return False
     finally:
         pass
+
+
+@connection_decorator
+def checker(connection):
+    # Получаем текущее время
+    now = datetime.now()
+    # Выполняем запрос на выборку пользователей с временем напоминания меньше текущего времени
+    cursor = connection.execute("SELECT user_id, reminder_time FROM reminders WHERE reminder_time < ?", (now,))
+
+    # Обрабатываем каждую запись результата запроса
+    for row in cursor:
+        user_id = row[0]
+        reminder_time = row[1]
+        connection.execute("DELETE FROM reminders WHERE user_id = ? AND reminder_time < ?", (user_id, now,))
+        return user_id
+
+    return None
