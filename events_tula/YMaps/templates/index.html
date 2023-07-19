@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{% static "styles.css" %}" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=9b791e7f-8637-4534-a2da-fcaaa9bb443c&lang=ru_RU"></script>
+    <script>
+      const TG = window.Telegram.WebApp;
+    </script>
+    <title>Abob Inc.</title>
+  </head>
+  <body>
+    <div id="map" style="width: 100%; height: 100%"></div>
+    <div id="menu">
+      <div id="search">
+        <div id="radius">
+          <div class="radius_item" id="0">200</div>
+          <div class="radius_item" id="1">1000</div>
+          <div class="radius_item" id="2">5000</div>
+          <div class="radius_item" id="3">10000</div>
+        </div>
+        <div id="slide">
+            <div class="cross">
+            <svg
+              fill="#fcc45d"
+              height="23px"
+              width="23px"
+              version="1.1"
+              id="arrow"
+              xmlns="http://www.w3.org/2000/svg"
+              xmlns:xlink="http://www.w3.org/1999/xlink"
+              viewBox="0 0 330 330"
+              xml:space="preserve">
+              <path
+                id="XMLID_225_"
+                d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393
+	c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393
+	s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z" />
+            </svg>
+          </div>
+        </div>
+        <input type="text" placeholder="Поиск места" />
+        <div class="swiper">
+          <div class="swiper-wrapper">
+          </div>
+        </div>
+      </div>
+    </div>
+    {{ events|json_script:"events" }}
+    <script src="{% static "js/functions.js" %}"></script>
+    <script src="{% static "js/script.js" %}"></script>
+    <script>
+      let swiper;
+      let catSwiper;
+      setTimeout(() => {
+        swiper = new Swiper(".swiper", {
+          slidesPerView: 1,
+          spaceBetween: 30,
+          freeMode: false,
+          observer: true,
+          observeSlideChildren: true,
+          observeParents: true,
+          navigation: {
+            nextEl: ".swiper-button-next",
+            prevEl: ".swiper-button-prev",
+          },
+        });
+
+        const swiperSlides = document.querySelectorAll(".swiper-slide");
+        let id = swiper.realIndex + 1;
+        selectItem(id);
+        swiper.on("slideChange", function () {
+          id = swiper.realIndex + 1;
+          selectItem(id);
+        });
+      }, 1000);
+    </script>
+    <script src="{% static "js/input.js" %}"></script>
+
+    <style>
+      .swiper {
+        width: 80%;
+        height: 530px;
+      }
+
+      .swiper-slide {
+        text-align: center;
+        font-size: 18px;
+        background: #fff;
+
+        /* Center slide text vertically */
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: -webkit-flex;
+        display: flex;
+        -webkit-box-pack: center;
+        -ms-flex-pack: center;
+        -webkit-justify-content: center;
+        justify-content: center;
+        -webkit-box-align: center;
+        -ms-flex-align: center;
+        -webkit-align-items: center;
+        align-items: center;
+      }
+    </style>
+  </body>
+</html>
