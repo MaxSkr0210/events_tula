@@ -28,11 +28,12 @@ SECRET_KEY = 'django-insecure-p8mmqqd77+%be_xpaq#1bdh9qpdea)3kd(-8nbrr-kzukwie&z
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['nutenolocal.ru', '127.0.0.1', '127.0.1.1', '10.129.0.28', '158.160.26.2']
 
 # Application definition
 
 INSTALLED_APPS = [
+  'django_extensions',
   # 'sslserver',
   'django.contrib.admin',
   'django.contrib.auth',
