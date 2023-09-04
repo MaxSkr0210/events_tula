@@ -1,6 +1,7 @@
 let myMap;
 let circle;
 let ourCoords;
+let radius;
 
 const deleteControls = [
   "trafficControl",
@@ -108,7 +109,7 @@ document.querySelectorAll(".dropdown").forEach((dropDownWrapper) => {
       dropDownBtn.focus();
       dropDownInput.value = this.dataset.value;
       dropDownList.classList.remove("dropdown__list--visible");
-      const radius = Number(this.dataset.value);
+      radius = Number(this.dataset.value);
       circle.geometry.setRadius(radius);
       printMark(myMap, events, radius);
     });

@@ -2,7 +2,7 @@ let up = true;
 
 const search = document.querySelector("#search");
 const arrow = document.querySelector("#arrow");
-const input = document.querySelector("input");
+const input = document.querySelector(".search");
 
 //Поиск мероприятий
 input.addEventListener("input", async () => {

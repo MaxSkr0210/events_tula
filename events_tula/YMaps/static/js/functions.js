@@ -66,9 +66,14 @@ const printMark = (map, events, radius) => {
 };
 //изменить метки
 const changeMarks = (map, data) => {
-  clearMarks(map);
-  const searchedEl = findGeo(myEvents, data);
-  addGeo(map, searchedEl);
+  if (data.trim() === "") {
+    printMark(map, events, radius);
+  } else {
+    console.log(myEvents);
+    const searchedEl = findGeo(myEvents, data);
+    console.log(searchedEl);
+    printMark(map, searchedEl, radius);
+  }
 };
 
 //Добавление элемента на страницу
@@ -83,7 +88,7 @@ const addElement = (data) => {
               alt="мероприятие" />
             <div class="mid">
               <div class="info">
-                <h2>Хомяково</h2>
+                <h2>${data.event_name}</h2>
                 <div class="date">
                   <img src="./static/images/Calendar.png" alt="картинка" />
                   ${date_start.split("Z")[0]} | ${time_start.split("Z")[0]}-${

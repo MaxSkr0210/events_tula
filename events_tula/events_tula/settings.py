@@ -34,7 +34,6 @@ ALLOWED_HOSTS = ['nutenolocal.ru', '127.0.0.1', '127.0.1.1', '10.129.0.28', '158
 
 INSTALLED_APPS = [
   'django_extensions',
-  # 'sslserver',
   'django.contrib.admin',
   'django.contrib.auth',
   'django.contrib.contenttypes',
