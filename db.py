@@ -18,7 +18,18 @@ def get_event_by_page_number(connection, id):
     page_number = id
     cursor = connection.execute("SELECT * FROM events")
     try:
-        return list(cursor)[page_number - 1]
+        event_array = list(cursor)[page_number - 1]
+        event_name = event_array[1]
+        event_datetime = event_array[3]
+        event_description = event_array[2]
+        event_location = event_array[5]
+        event_capacity = int(event_array[6])
+        if event_capacity == 0:
+            event_capacity = "Бесплатно"
+
+        formatted_string = f"*{event_name}*\nНачало: {event_datetime}\n\nОписание: {event_description}\n\nАдрес: {event_location}\nСтоимость: {event_capacity}"
+
+        return formatted_string
     except IndexError:
         return "None"
 

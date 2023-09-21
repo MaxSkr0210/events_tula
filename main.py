@@ -61,7 +61,7 @@ async def handle_start_command(msg: types.Message):
     else:
         markup.row(InlineKeyboardButton("Рег", callback_data=f"page_register:1"))
     markup.row(InlineKeyboardButton("Напомнить", callback_data="reminder:1"))
-    await msg.answer(str(get_event_by_page_number(1)), reply_markup=markup)
+    await msg.answer(str(get_event_by_page_number(1)), reply_markup=markup, parse_mode="Markdown")
 
 
 async def update_page_markup(message, user_id, call_id, page_number):
@@ -78,10 +78,11 @@ async def update_page_markup(message, user_id, call_id, page_number):
         markup.row(InlineKeyboardButton("Рег", callback_data=f"page_register:{page_number}"))
     markup.row(InlineKeyboardButton("Напомнить", callback_data=f"reminder:{page_number}"))
     text = str(get_event_by_page_number(page_number))
+    print(text)
     if text != "None":
         if not if_exists:
             create_record(user_id, page_number)
-        await message.edit_text(str(get_event_by_page_number(page_number)), reply_markup=markup)
+        await message.edit_text(str(get_event_by_page_number(page_number)), reply_markup=markup, parse_mode="Markdown")
     else:
         await bot.answer_callback_query(callback_query_id=call_id, text="Такого мероприятия нет")
 
