@@ -65,7 +65,7 @@ function init() {
       );
 
       //вывод всех мериприятий в радиусе 200 м
-      printMark(myMap, events, 200);
+      // printMark(myMap, events, 200);
 
       //создание и вывод окружности
       circle = new ymaps.Circle([ourCoords.position, 200], null, {
