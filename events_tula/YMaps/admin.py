@@ -5,7 +5,6 @@ class EventsAdmin(admin.ModelAdmin):
     list_display = ('event_name', 'description', 'start_date', 'end_date', 'address', 'price', 'is_registered')
     list_filter = ('is_registered',)
     list_editable = ('is_registered',)
-    readonly_fields = ('event_name', 'description', 'start_date', 'end_date', 'address', 'price', 'img')
 
     def has_add_permission(self, request):
         return False
