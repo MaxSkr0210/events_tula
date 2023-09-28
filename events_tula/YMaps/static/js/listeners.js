@@ -13,14 +13,14 @@ input.addEventListener("input", async () => {
 //Открытие и закрытие меню
 arrow.addEventListener("click", () => {
   if (!up) {
-    search.style.top = 600 + "px";
+    search.style.top = 400 + "px";
     arrow.style.transform = "rotate(180deg)";
-    up = true;
   } else {
+    console.log(123);
     arrow.style.transform = "rotate(0deg)";
     search.style.top = 60 + "px";
-    up = false;
   }
+  up = !up;
 });
 
 //Выбор расстояния
