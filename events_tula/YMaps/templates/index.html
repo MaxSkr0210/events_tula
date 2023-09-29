@@ -52,36 +52,12 @@
         </div>
         <input type="text" placeholder="Поиск мероприятия..." class="search" />
       </div>
-      <div class="events">
-        <div class="event_item">
-          <div class="header">
-            <img
-              src="https://www.simplilearn.com/ice9/free_resources_article_thumb/prop1-css-background-image.JPG"
-              alt="мероприятие" />
-            <div class="mid">
-              <div class="info">
-                <h2>Хомяково</h2>
-                <div class="date">
-                  <img src="./static/images/Calendar.png" alt="картинка" />
-                  15.08.2023 | 10:00-18:00
-                </div>
-              </div>
-              <div class="price">100 <b>₽</b></div>
-            </div>
-          </div>
-          <div class="body">
-            <div class="mid">
-              <button class="btn description">Описание</button>
-              <button class="btn" id="${data.id}">Билеты</button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <div class="events"></div>
     </div>
 
     {{ events|json_script:"events" }}
-    <!-- <script src="{% static 'js/functions.js' %}"></script> -->
+    <script src="{% static 'js/functions.js' %}"></script>
     <script src="{% static 'js/script.js' %}"></script>
-    <!-- <script src="{% static 'js/listeners.js' %}"></script> -->
+    <script src="{% static 'js/listeners.js' %}"></script>
   </body>
 </html>
