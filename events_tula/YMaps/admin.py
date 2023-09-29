@@ -1,8 +1,8 @@
 from django.contrib import admin
 from .models import *
-@admin.register(Events)
+@admin.register(Event)
 class EventsAdmin(admin.ModelAdmin):
-    list_display = ('event_name', 'description', 'start_date', 'end_date', 'address', 'price', 'is_registered')
+    list_display = ('event_name', 'description', 'start_date', 'end_date', 'address', 'is_registered')
     list_filter = ('is_registered',)
     list_editable = ('is_registered',)
 
