@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 def connection_decorator(func):
     def wrapper(*args, **kwargs):
-        connection = sqlite3.connect('tulaevents.db')
+        connection = sqlite3.connect('/home/intensa/database_dir/tulaevents.db')
         result = func(connection, *args, **kwargs)
         connection.commit()
         connection.close()
@@ -20,14 +20,15 @@ def get_event_by_page_number(connection, id):
     try:
         event_array = list(cursor)[page_number - 1]
         event_name = event_array[1]
-        event_datetime = event_array[3]
         event_description = event_array[2]
-        event_location = event_array[5]
-        event_capacity = int(event_array[6])
-        if event_capacity == 0:
-            event_capacity = "Бесплатно"
+        event_age_restrictions = event_array[3]
+        event_company = event_array[4]
+        datetime_obj = datetime.fromisoformat(event_array[6])
+        event_datetime = datetime_obj.strftime("%d-%m-%Y %H:%M")
+        event_location = event_array[8]
+        event_pre_reg = bool(event_array[10])
 
-        formatted_string = f"*{event_name}*\nНачало: {event_datetime}\n\nОписание: {event_description}\n\nАдрес: {event_location}\nСтоимость: {event_capacity}"
+        formatted_string = f"*{event_name} {event_age_restrictions}*\nНачало: {event_datetime}\n\nОписание: {event_description}\n\n{'Требуется предварительная регистрация!' if event_pre_reg else 'Предварительная регистрация не требуется!'}\n\nАдрес: {event_location}\n\n\"{event_company}\""
 
         return formatted_string
     except IndexError:
