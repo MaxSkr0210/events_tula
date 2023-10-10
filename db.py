@@ -4,8 +4,7 @@ from datetime import datetime, timedelta
 
 def connection_decorator(func):
     def wrapper(*args, **kwargs):
-        # connection = sqlite3.connect('/home/intensa/database_dir/tulaevents.db')
-        connection = sqlite3.connect('tulaevents.db')
+        connection = sqlite3.connect('/home/intensa/database_dir/tulaevents.db')
         result = func(connection, *args, **kwargs)
         connection.commit()
         connection.close()
