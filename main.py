@@ -1,17 +1,23 @@
+import hashlib
+import os
+import requests
 from datetime import datetime
 import sqlite3
 
+import aiogram_dialog.widgets.media
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
-from aiogram.types import CallbackQuery, ReplyKeyboardRemove
+from aiogram.types import CallbackQuery, ReplyKeyboardRemove, ContentType
 from aiogram.utils import executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
+from aiogram.types import InputFile
+
 from aiogram.dispatcher.filters.state import StatesGroup, State
-from aiogram_dialog import DialogRegistry, DialogManager, Window, Dialog
-from aiogram_dialog.widgets.kbd import Next, Button, Cancel
+from aiogram_dialog import DialogRegistry, DialogManager, Window, Dialog, ShowMode
+from aiogram_dialog.widgets.kbd import Next, Button, Cancel, SwitchTo
 from aiogram_dialog.widgets.text import Const
 from aiogram_dialog.widgets.input import MessageInput
 
@@ -25,6 +31,9 @@ dp.middleware.setup(LoggingMiddleware())
 
 registry = DialogRegistry(dp)
 
+IMG_SAVE_PATH = "/home/intensa/static/uploads/"
+
+
 class EventRegistrationForm(StatesGroup):
     start = State()
     event_name = State()
@@ -35,22 +44,24 @@ class EventRegistrationForm(StatesGroup):
     start_date = State()
     end_date = State()
     address = State()
+    img_link = State()
+    img_failed = State()
     need_pre_reg = State()
+    final_input = State()
+    approve_input = State()
 
 
 async def insert_event(event_arr):
     try:
         connection = sqlite3.connect('/home/intensa/database_dir/tulaevents.db')
-
         sql_query = """
             INSERT INTO events (event_name, description, age_restrictions, company, category, 
-                                start_date, end_date, address, need_pre_reg, is_registered)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, False)
+                                start_date, end_date, address, img_link, need_pre_reg, is_registered)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, False)
         """
 
         connection.execute(sql_query, event_arr)
         connection.commit()
-        connection.close()
     except sqlite3.Error as e:
         print(e)
 
@@ -82,18 +93,43 @@ async def on_input(m: types.Message, dialog: Dialog, manager: DialogManager):
         user_data["end_date"] = date_time
     elif current_state == EventRegistrationForm.address:
         user_data["address"] = m.text
-    await dialog.next()
-
-
-async def on_date(m: types.Message, dialog: Dialog, manager: DialogManager):
 
     await dialog.next()
 
 
-async def final_input(m: types.Message, dialog: Dialog, manager: DialogManager):
-    m_text_lower = m.text.lower()
-    need_pre_reg = 1 if m_text_lower == "да" else 0
+async def on_image(m: types.Message, dialog: Dialog, manager: DialogManager):
+    user_data = manager.current_context().dialog_data
+    random_hash = hashlib.sha256(os.urandom(24)).hexdigest()
+    unique_filename = f"{random_hash}.jpg"
+    try:
+        if m.content_type == "text":
+            response = requests.get(m.text)
+            if response.status_code == 200:
+                with open(IMG_SAVE_PATH + unique_filename, "wb") as file:
+                    file.write(response.content)
+        img_link = ""
+        if m.content_type == "document":
+            doc_id = m.document.file_id
+            file = await bot.download_file_by_id(file_id=doc_id)
+            with open(IMG_SAVE_PATH + unique_filename, 'wb') as f:
+                f.write(file.getvalue())
+        if m.content_type == "photo":
+            file_id = m.photo[-1].file_id
+            user_data['img_preview'] = file_id
+            file = await bot.download_file_by_id(file_id=file_id)
+            with open(IMG_SAVE_PATH + unique_filename, 'wb') as f:
+                f.write(file.getvalue())
+        user_data['img_link'] = unique_filename
+        await dialog.switch_to(EventRegistrationForm.need_pre_reg)
+    except Exception as e:
+        await dialog.switch_to(EventRegistrationForm.img_failed)
 
+
+async def final_input(c: CallbackQuery, button: Button, manager: DialogManager):
+    manager.show_mode = ShowMode.SEND
+    user_data = manager.current_context().dialog_data
+    m_text_lower = button.widget_id.lower()
+    user_data["need_pre_reg"] = 1 if m_text_lower == "agreeprereg" else 0
     event_arr = [
         manager.current_context().dialog_data.get("event_name", ""),
         manager.current_context().dialog_data.get("description", ""),
@@ -103,12 +139,40 @@ async def final_input(m: types.Message, dialog: Dialog, manager: DialogManager):
         manager.current_context().dialog_data.get("start_date", ""),
         manager.current_context().dialog_data.get("end_date", ""),
         manager.current_context().dialog_data.get("address", ""),
-        need_pre_reg,
+        manager.current_context().dialog_data.get("img_link", ""),
+        manager.current_context().dialog_data.get("need_pre_reg", ""),
     ]
+    event_name = event_arr[0]
+    event_description = event_arr[1]
+    event_age_restrictions = event_arr[2]
+    event_company = event_arr[3]
+    datetime_obj = datetime.fromisoformat(event_arr[5])
+    event_datetime = datetime_obj.strftime("%d-%m-%Y %H:%M")
+    event_location = event_arr[7]
+    event_img_link = event_arr[8]
+    event_pre_reg = bool(event_arr[9])
+    formatted_string = f"{event_name} {event_age_restrictions}*\nНачало: {event_datetime}\n\nОписание: {event_description}\n\n{'Требуется предварительная регистрация!' if event_pre_reg else 'Предварительная регистрация не требуется!'}\n\nАдрес: {event_location}\n\n\"{event_company}\""
+    user_data['event_arr'] = event_arr
 
-    await insert_event(event_arr)
+    event_img_preview = manager.current_context().dialog_data.get("img_preview", "")
+    if event_img_preview != "":
+        await c.message.answer_photo(photo=event_img_preview, caption=formatted_string)
+        await manager.switch_to(EventRegistrationForm.approve_input)
+    elif event_img_link != "":
+        await c.message.answer_photo(photo=InputFile(event_img_link), caption=formatted_string)
+        await manager.switch_to(EventRegistrationForm.approve_input)
+    else:
+        await c.message.answer(formatted_string)
+
+    await manager.switch_to(EventRegistrationForm.approve_input)
+
+
+async def agree_input(c: CallbackQuery, button: Button, manager: DialogManager):
+    event_arr = manager.current_context().dialog_data.get("event_arr", ""),
+    event = event_arr[0]
+    await insert_event(event)
     await manager.done()
-    await reg_new(m)
+    await reg_new(c.message)
 
 
 async def go_back(c: CallbackQuery, button: Button, manager: DialogManager):
@@ -120,12 +184,6 @@ async def go_next(c: CallbackQuery, button: Button, manager: DialogManager):
 
 
 dialog = Dialog(
-    Window(
-        Const("Для начала регистрации нажмите \"Начать\""),
-        Button(Const("Начать"), id="next", on_click=go_next),
-        state=EventRegistrationForm.start,
-        preview_add_transitions=[Next()],
-    ),
     Window(
         Const("Название мероприятия"),
         Button(Const("Назад"), id="backStart", on_click=go_back),
@@ -183,11 +241,35 @@ dialog = Dialog(
         preview_add_transitions=[Next()],
     ),
     Window(
-        Const("Требуется ли предварительная запись участников?(Да/Нет)"),
-        Button(Const("Назад"), id="backPay", on_click=go_back),
-        MessageInput(final_input),
+        Const("Фото"),
+        SwitchTo(Const("Продолжить без фото"), id="continueWithoutPhoto", state=EventRegistrationForm.need_pre_reg),
+        Button(Const("Назад"), id="backStart", on_click=go_back),
+        MessageInput(on_image, content_types=[ContentType.TEXT, ContentType.PHOTO, ContentType.DOCUMENT]),
+        state=EventRegistrationForm.img_link,
+        preview_add_transitions=[Next()],
+    ),
+    Window(
+        Const("Ошибка при загрузке фото, повторите попытку!"),
+        Button(Const("Продолжить без фото"), id="nextWithoutPhoto", on_click=go_next),
+        SwitchTo(Const("Назад"), id="backToAdrs", state=EventRegistrationForm.address),
+        MessageInput(on_image, content_types=[ContentType.TEXT, ContentType.PHOTO, ContentType.DOCUMENT]),
+        state=EventRegistrationForm.img_failed,
+        preview_add_transitions=[Next()],
+    ),
+    Window(
+        Const("Требуется ли предварительная запись участников?"),
+        Button(Const("Да"), id="agreePreReg", on_click=final_input),
+        Button(Const("Нет"), id="disagreePreReg", on_click=final_input),
+        SwitchTo(Const("Назад"), id="backToAdrs", state=EventRegistrationForm.address),
         state=EventRegistrationForm.need_pre_reg,
-        preview_add_transitions=[Cancel()]
+        preview_add_transitions=[Next()]
+    ),
+    Window(
+        Const("Все поля заполнены корректно?"),
+        Button(Const("Да"), id="agreeInput", on_click=agree_input),
+        SwitchTo(Const("Нет"), id="disagreeInput", state=EventRegistrationForm.event_name),
+        state=EventRegistrationForm.approve_input,
+        preview_add_transitions=[Cancel()],
     ),
 )
 
@@ -201,7 +283,7 @@ kb = [[
 
 @dp.message_handler(Text(equals="Создать новое мероприятие"))
 async def create_new_event(message: types.Message, dialog_manager: DialogManager):
-    await dialog_manager.start(EventRegistrationForm.start, mode=StartMode.RESET_STACK)
+    await dialog_manager.start(EventRegistrationForm.event_name, mode=StartMode.RESET_STACK)
 
 
 @dp.message_handler(commands=["start"])
