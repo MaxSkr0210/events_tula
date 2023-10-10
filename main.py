@@ -6,7 +6,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.utils import exceptions
 
-from db import get_event_by_page_number, check_user_registration, register_user, unregister_user, create_record, create_reminder_in_db, checker
+from db import get_event_by_page_number, get_event_object_by_page_number, get_events_count, check_user_registration, register_user, unregister_user, create_record, create_reminder_in_db, checker
 from cfg import API_TOKEN
 
 
@@ -19,13 +19,15 @@ dp = Dispatcher(bot, storage=storage)
 async def handle_prev_page(call: types.CallbackQuery):
     page_number = int(call.data.split(":")[1]) - 1
     if page_number < 1:
-        await bot.answer_callback_query(callback_query_id=call.id, text="Такого мероприятия нет")
+        last_page_number = get_events_count()
+        await update_page_markup(call.message, call.from_user['id'], call.id, last_page_number)
     else:
         await update_page_markup(call.message, call.from_user['id'], call.id, page_number)
 
 
 @dp.callback_query_handler(text_startswith="page_next")
 async def handle_next_page(call: types.CallbackQuery):
+    print(get_events_count())
     page_number = int(call.data.split(":")[1]) + 1
     await update_page_markup(call.message, call.from_user['id'], call.id, page_number)
 
@@ -33,28 +35,31 @@ async def handle_next_page(call: types.CallbackQuery):
 @dp.callback_query_handler(text_startswith="page_register")
 async def handle_register_user(call: types.CallbackQuery):
     page_number = int(call.data.split(":")[1])
-    register_user(call.from_user['id'], page_number)
+    event_id = get_event_object_by_page_number(page_number)[0]
+    register_user(call.from_user['id'], event_id)
     await update_page_markup(call.message, call.from_user['id'], call.id, page_number)
 
 
 @dp.callback_query_handler(text_startswith="page_unregister")
 async def handle_unregister_user(call: types.CallbackQuery):
     page_number = int(call.data.split(":")[1])
-    unregister_user(call.from_user['id'], page_number)
+    event_id = get_event_object_by_page_number(page_number)[0]
+    unregister_user(call.from_user['id'], event_id)
     await update_page_markup(call.message, call.from_user['id'], call.id, page_number)
 
 
 @dp.message_handler(commands=["start"])
 async def handle_start_command(msg: types.Message):
-    if_exists, is_registered = check_user_registration(chat_id=msg.from_id, event_id=1)
+    page_number = 1
+    event_id = get_event_object_by_page_number(page_number)[0]
+    if_exists, is_registered = check_user_registration(chat_id=msg.from_id, event_id=event_id)
     markup = InlineKeyboardMarkup().add(
         InlineKeyboardButton("Назад", callback_data=f"page_prev:0"),
-        InlineKeyboardButton("1", callback_data="null"),
         InlineKeyboardButton("Вперёд", callback_data=f"page_next:1"),
     )
 
     if not if_exists:
-        create_record(msg.from_id, 1)
+        create_record(msg.from_id, event_id)
 
     if is_registered:
         markup.row(InlineKeyboardButton("Анрег", callback_data=f"page_unregister:1"))
@@ -65,10 +70,10 @@ async def handle_start_command(msg: types.Message):
 
 
 async def update_page_markup(message, user_id, call_id, page_number):
-    if_exists, is_registered = check_user_registration(chat_id=user_id, event_id=page_number)
+    event_id = get_event_object_by_page_number(page_number)[0]
+    if_exists, is_registered = check_user_registration(chat_id=user_id, event_id=event_id)
     markup = InlineKeyboardMarkup().add(
         InlineKeyboardButton("Назад", callback_data=f"page_prev:{page_number}"),
-        InlineKeyboardButton(str(page_number), callback_data="null"),
         InlineKeyboardButton("Вперёд", callback_data=f"page_next:{page_number}")
     )
 
@@ -78,20 +83,19 @@ async def update_page_markup(message, user_id, call_id, page_number):
         markup.row(InlineKeyboardButton("Рег", callback_data=f"page_register:{page_number}"))
     markup.row(InlineKeyboardButton("Напомнить", callback_data=f"reminder:{page_number}"))
     text = str(get_event_by_page_number(page_number))
-    print(text)
     if text != "None":
         if not if_exists:
-            create_record(user_id, page_number)
+            create_record(user_id, event_id)
         await message.edit_text(str(get_event_by_page_number(page_number)), reply_markup=markup, parse_mode="Markdown")
     else:
-        await bot.answer_callback_query(callback_query_id=call_id, text="Такого мероприятия нет")
+        await update_page_markup(message, user_id, call_id, page_number=1)
 
 
 @dp.callback_query_handler(text_startswith="reminder")
 async def process_reminder_callback(call: types.CallbackQuery):
     event_id = int(call.data.split(":")[1])
-    event = get_event_by_page_number(event_id)
-    start_date = datetime.fromisoformat(event[3].replace('T', ' '))
+    event = get_event_object_by_page_number(event_id)
+    start_date = datetime.fromisoformat(event[6].replace('T', ' '))
     remind_time = start_date - timedelta(hours=1)
     status = create_reminder_in_db(event_id, call.from_user['id'], remind_time)
     text = ""

@@ -4,7 +4,8 @@ from datetime import datetime, timedelta
 
 def connection_decorator(func):
     def wrapper(*args, **kwargs):
-        connection = sqlite3.connect('/home/intensa/database_dir/tulaevents.db')
+        # connection = sqlite3.connect('/home/intensa/database_dir/tulaevents.db')
+        connection = sqlite3.connect('tulaevents.db')
         result = func(connection, *args, **kwargs)
         connection.commit()
         connection.close()
@@ -31,6 +32,16 @@ def get_event_by_page_number(connection, id):
         formatted_string = f"*{event_name} {event_age_restrictions}*\nНачало: {event_datetime}\n\nОписание: {event_description}\n\n{'Требуется предварительная регистрация!' if event_pre_reg else 'Предварительная регистрация не требуется!'}\n\nАдрес: {event_location}\n\n\"{event_company}\""
 
         return formatted_string
+    except IndexError:
+        return "None"
+
+
+@connection_decorator
+def get_event_object_by_page_number(connection, id):
+    page_number = id
+    cursor = connection.execute("SELECT * FROM events")
+    try:
+        return list(cursor)[page_number - 1]
     except IndexError:
         return "None"
 
@@ -69,6 +80,13 @@ def register_user(connection, chat_id, event_id):
 @connection_decorator
 def unregister_user(connection, chat_id, event_id):
     connection.execute("UPDATE users SET is_registered = false WHERE chat_id = ? AND event_id = ?", (chat_id, event_id))
+
+
+@connection_decorator
+def get_events_count(connection):
+    cursor = connection.execute("SELECT COUNT(*) FROM events")
+    data = cursor.fetchall()
+    return data[0][0]
 
 
 @connection_decorator
