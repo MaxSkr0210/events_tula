@@ -16,7 +16,7 @@ def connection_decorator(func):
 @connection_decorator
 def get_event_by_page_number(connection, id):
     page_number = id
-    cursor = connection.execute("SELECT * FROM events")
+    cursor = connection.execute("SELECT * FROM events WHERE is_registered = true")
     try:
         event_array = list(cursor)[page_number - 1]
         event_name = event_array[1]
@@ -38,7 +38,7 @@ def get_event_by_page_number(connection, id):
 @connection_decorator
 def get_event_object_by_page_number(connection, id):
     page_number = id
-    cursor = connection.execute("SELECT * FROM events")
+    cursor = connection.execute("SELECT * FROM events WHERE is_registered = true")
     try:
         return list(cursor)[page_number - 1]
     except IndexError:
@@ -83,7 +83,7 @@ def unregister_user(connection, chat_id, event_id):
 
 @connection_decorator
 def get_events_count(connection):
-    cursor = connection.execute("SELECT COUNT(*) FROM events")
+    cursor = connection.execute("SELECT COUNT(*) FROM events WHERE is_registered = true")
     data = cursor.fetchall()
     return data[0][0]
 
