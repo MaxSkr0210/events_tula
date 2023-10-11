@@ -1,6 +1,6 @@
 from django.db import models
 
-class Event(models.Model):
+class Events(models.Model):
     event_name = models.TextField()
     description = models.TextField()
     age_restrictions = models.TextField()
@@ -9,7 +9,7 @@ class Event(models.Model):
     start_date = models.DateTimeField(blank=True, null=True)
     end_date = models.DateTimeField(blank=True, null=True)
     address = models.TextField()
-    img = models.TextField()
+    img_link = models.TextField()
     is_registered = models.BooleanField()
 
     class Meta:
@@ -33,7 +33,7 @@ class Reminders(models.Model):
 
 class Users(models.Model):
     chat_id = models.IntegerField(blank=True, null=True)
-    event = models.ForeignKey(Event, models.DO_NOTHING, blank=True, null=True)
+    event = models.ForeignKey(Events, models.DO_NOTHING, blank=True, null=True)
     is_registered = models.BooleanField(blank=True, null=True)
 
     class Meta:
