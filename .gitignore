@@ -3,3 +3,4 @@ venv
 events_tula/cert.pem
 events_tula/key.pem
 events_tula/csr.pem
+events_tula/.env

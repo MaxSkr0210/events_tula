@@ -11,9 +11,13 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
+from dotenv import load_dotenv
 
 import mimetypes
 import os
+
+load_dotenv()
+env = os.environ.get('ENV')
 
 mimetypes.add_type("text/javascript", ".js", True)
 
@@ -77,12 +81,22 @@ WSGI_APPLICATION = 'events_tula.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-DATABASES = {
-  'default': {
-    'ENGINE': 'django.db.backends.sqlite3',
-    'NAME': BASE_DIR / 'tulaevents.db',
+DATABASES = None
+
+if (env == "development"):
+  DATABASES = {
+    'default': {
+      'ENGINE': 'django.db.backends.sqlite3',
+      'NAME': BASE_DIR / 'tulaevents.db',
+    }
   }
-}
+elif (env == "production"):
+  DATABASES = {
+    'default': {
+      'ENGINE': 'django.db.backends.sqlite3',
+      'NAME': '/home/intensa/database_dir/tulaevents.db',
+    }
+  }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
