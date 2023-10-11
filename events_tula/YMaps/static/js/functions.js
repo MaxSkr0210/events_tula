@@ -87,7 +87,7 @@ const addElement = (data) => {
   ) {
     img = `static/uploads/${data.img_link}`;
   } else {
-    img = data.img;
+    img = data.img_link;
   }
   const template = `
   <div class="event_item">
