@@ -98,7 +98,7 @@ elif (env == "production"):
     }
   }
   STATICFILES_DIRS = [
-    "/home/intensa/static/uploads"
+    "/home/intensa/static"
   ]
 
 # Password validation
