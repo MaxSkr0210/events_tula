@@ -81,9 +81,6 @@ const addElement = (data) => {
   const [date_start, time_start] = data.start_date.split("T");
   const [date_end, time_end] = data.end_date.split("T");
   let img;
-  if (data.img.trim() === "") {
-    img == null;
-  }
   if (
     data.img.indexOf("http://") === -1 ||
     data.img.indexOf("https://") === -1
