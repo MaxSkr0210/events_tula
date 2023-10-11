@@ -97,9 +97,9 @@ elif (env == "production"):
       'NAME': '/home/intensa/database_dir/tulaevents.db',
     }
   }
-  STATICFILES_DIRS = (
+  STATICFILES_DIRS = [
     "/home/intensa/static/uploads"
-  )
+  ]
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -133,7 +133,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
-STATIC_URL = 'C:/Users/Max/Desktop/web/events_tula/events_tula/static/'
+STATIC_URL = 'static/'
 # Add these new lines
 
 # Default primary key field type
