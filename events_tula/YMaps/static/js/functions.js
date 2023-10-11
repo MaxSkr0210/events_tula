@@ -82,7 +82,7 @@ const addElement = (data) => {
   const [date_end, time_end] = data.end_date.split("T");
   let img;
   if (
-    data.img_link.indexOf("http://") === -1 ||
+    data.img_link.indexOf("http://") === -1 &&
     data.img_link.indexOf("https://") === -1
   ) {
     img = `static/uploads/${data.img_link}`;
