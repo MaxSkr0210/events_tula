@@ -17,7 +17,7 @@ class Events(models.Model):
         verbose_name = "Мероприятия"
         verbose_name_plural = "Мероприятия"
         ordering: ["is_registered"]
-        db_table = 'event'
+        db_table = 'events'
 
 class Reminders(models.Model):
     event_id = models.IntegerField(blank=True, null=True)
