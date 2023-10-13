@@ -185,63 +185,63 @@ async def go_next(c: CallbackQuery, button: Button, manager: DialogManager):
 
 dialog = Dialog(
     Window(
-        Const("Название мероприятия"),
+        Const("Введите название мероприятия"),
         Button(Const("Назад"), id="backStart", on_click=go_back),
         MessageInput(on_input),
         state=EventRegistrationForm.event_name,
         preview_add_transitions=[Next()],
     ),
     Window(
-        Const("Описание мероприятия"),
+        Const("Введите описание для мероприятия"),
         Button(Const("Назад"), id="backStart", on_click=go_back),
         MessageInput(on_input),
         state=EventRegistrationForm.description,
         preview_add_transitions=[Next()],
     ),
     Window(
-        Const("Возрастные ограничения"),
+        Const("Введите возрастные ограничения ( если их нет, укажите “0+” )"),
         Button(Const("Назад"), id="backStart", on_click=go_back),
         MessageInput(on_input),
         state=EventRegistrationForm.age_restrictions,
         preview_add_transitions=[Next()],
     ),
     Window(
-        Const("Название Вашей компании"),
+        Const("Введите название вашей компании"),
         Button(Const("Назад"), id="backStart", on_click=go_back),
         MessageInput(on_input),
         state=EventRegistrationForm.company,
         preview_add_transitions=[Next()],
     ),
     Window(
-        Const("Категория (Формат)"),
+        Const("Опишите формат мероприятия, например “Рукоделие”"),
         Button(Const("Назад"), id="backStart", on_click=go_back),
         MessageInput(on_input),
         state=EventRegistrationForm.category,
         preview_add_transitions=[Next()],
     ),
     Window(
-        Const("Время начала мероприятия в формате DD-MM-YYYY HH:MM"),
+        Const("Введите время старта мероприятия в формате ДД-ММ-ГГГГ ЧЧ:ММ"),
         Button(Const("Назад"), id="backStart", on_click=go_back),
         MessageInput(on_input),
         state=EventRegistrationForm.start_date,
         preview_add_transitions=[Next()],
     ),
     Window(
-        Const("Время окончания мероприятия в формате DD-MM-YYYY HH:MM"),
+        Const("Введите время окончания мероприятия в формате ДД-ММ-ГГГГ ЧЧ:ММ"),
         Button(Const("Назад"), id="backStart", on_click=go_back),
         MessageInput(on_input),
         state=EventRegistrationForm.end_date,
         preview_add_transitions=[Next()],
     ),
     Window(
-        Const("Адрес проведения мероприятия"),
+        Const("Введите адрес проведения мероприятия"),
         Button(Const("Назад"), id="backTime", on_click=go_back),
         MessageInput(on_input),
         state=EventRegistrationForm.address,
         preview_add_transitions=[Next()],
     ),
     Window(
-        Const("Фото"),
+        Const("Приложите фотографию для мероприятия или продолжите без неё"),
         SwitchTo(Const("Продолжить без фото"), id="continueWithoutPhoto", state=EventRegistrationForm.need_pre_reg),
         Button(Const("Назад"), id="backStart", on_click=go_back),
         MessageInput(on_image, content_types=[ContentType.TEXT, ContentType.PHOTO, ContentType.DOCUMENT]),
@@ -257,7 +257,7 @@ dialog = Dialog(
         preview_add_transitions=[Next()],
     ),
     Window(
-        Const("Требуется ли предварительная запись участников?"),
+        Const("Участникам нужно записываться на мероприятие?"),
         Button(Const("Да"), id="agreePreReg", on_click=final_input),
         Button(Const("Нет"), id="disagreePreReg", on_click=final_input),
         SwitchTo(Const("Назад"), id="backToAdrs", state=EventRegistrationForm.address),
@@ -265,7 +265,7 @@ dialog = Dialog(
         preview_add_transitions=[Next()]
     ),
     Window(
-        Const("Все поля заполнены корректно?"),
+        Const("Вся информация в карточке заполнена корректно?"),
         Button(Const("Да"), id="agreeInput", on_click=agree_input),
         SwitchTo(Const("Нет"), id="disagreeInput", state=EventRegistrationForm.event_name),
         state=EventRegistrationForm.approve_input,
@@ -289,13 +289,13 @@ async def create_new_event(message: types.Message, dialog_manager: DialogManager
 @dp.message_handler(commands=["start"])
 async def cmd_start(message: types.Message):
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, keyboard=kb, one_time_keyboard=True)
-    await message.answer("Привет! Для добавления нового мероприятия нажми на кнопку.",
+    await message.answer("Привет! Для создания мероприятия нажми на кнопку!",
                          reply_markup=keyboard)
 
 
 async def reg_new(message: types.Message):
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, keyboard=kb, one_time_keyboard=True)
-    await message.answer("Регистрация окончена! Мероприятие успешно отправлено на модерацию!", reply_markup=keyboard)
+    await message.answer("Создание мероприятия завершено. Ваше мероприятие отправлено на модерацию, после прохождения модерации мероприятие будет опубликовано.", reply_markup=keyboard)
 
 
 if __name__ == '__main__':
