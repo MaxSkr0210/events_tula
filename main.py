@@ -2,12 +2,12 @@ import asyncio
 from datetime import datetime, timedelta
 
 from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMedia, InputMediaPhoto, InputFile
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.utils import exceptions
 
 from db import get_event_by_page_number, get_event_object_by_page_number, get_events_count, check_user_registration, register_user, unregister_user, create_record, create_reminder_in_db, checker
-from cfg import API_TOKEN
+from cfg import API_TOKEN, IMG_SAVE_PATH
 
 
 bot = Bot(token=API_TOKEN)
@@ -27,7 +27,6 @@ async def handle_prev_page(call: types.CallbackQuery):
 
 @dp.callback_query_handler(text_startswith="page_next")
 async def handle_next_page(call: types.CallbackQuery):
-    print(get_events_count())
     page_number = int(call.data.split(":")[1]) + 1
     await update_page_markup(call.message, call.from_user['id'], call.id, page_number)
 
@@ -66,7 +65,9 @@ async def handle_start_command(msg: types.Message):
     else:
         markup.row(InlineKeyboardButton("Рег", callback_data=f"page_register:1"))
     markup.row(InlineKeyboardButton("Напомнить", callback_data="reminder:1"))
-    await msg.answer(str(get_event_by_page_number(1)), reply_markup=markup, parse_mode="Markdown")
+    event_text, event_img_link = get_event_by_page_number(page_number)
+    event_img_link = IMG_SAVE_PATH + event_img_link
+    await msg.answer_photo(photo=InputFile(event_img_link), caption=event_text, reply_markup=markup, parse_mode="Markdown")
 
 
 async def update_page_markup(message, user_id, call_id, page_number):
@@ -81,12 +82,14 @@ async def update_page_markup(message, user_id, call_id, page_number):
         markup.row(InlineKeyboardButton("Анрег", callback_data=f"page_unregister:{page_number}"))
     else:
         markup.row(InlineKeyboardButton("Рег", callback_data=f"page_register:{page_number}"))
-    markup.row(InlineKeyboardButton("Напомнить", callback_data=f"reminder:{page_number}"))
     text = str(get_event_by_page_number(page_number))
     if text != "None":
         if not if_exists:
             create_record(user_id, event_id)
-        await message.edit_text(str(get_event_by_page_number(page_number)), reply_markup=markup, parse_mode="Markdown")
+        event_text, event_img_link = get_event_by_page_number(page_number)
+        event_img_link = IMG_SAVE_PATH + event_img_link
+        event_img_file = InputMediaPhoto(media=InputFile(event_img_link), caption=event_text, parse_mode="Markdown")
+        await message.edit_media(event_img_file, reply_markup=markup)
     else:
         await update_page_markup(message, user_id, call_id, page_number=1)
 

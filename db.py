@@ -26,11 +26,12 @@ def get_event_by_page_number(connection, id):
         datetime_obj = datetime.fromisoformat(event_array[6])
         event_datetime = datetime_obj.strftime("%d-%m-%Y %H:%M")
         event_location = event_array[8]
+        event_img_link = event_array[9]
         event_pre_reg = bool(event_array[10])
 
         formatted_string = f"*{event_name} {event_age_restrictions}*\nНачало: {event_datetime}\n\nОписание: {event_description}\n\n{'Требуется предварительная регистрация!' if event_pre_reg else 'Предварительная регистрация не требуется!'}\n\nАдрес: {event_location}\n\n\"{event_company}\""
 
-        return formatted_string
+        return formatted_string, event_img_link
     except IndexError:
         return "None"
 
@@ -122,3 +123,4 @@ def checker(connection):
         return user_id
 
     return None
+
