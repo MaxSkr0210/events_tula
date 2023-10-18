@@ -159,6 +159,7 @@ async def final_input(c: CallbackQuery, button: Button, manager: DialogManager):
         await c.message.answer_photo(photo=event_img_preview, caption=formatted_string)
         await manager.switch_to(EventRegistrationForm.approve_input)
     elif event_img_link != "":
+        event_img_link = IMG_SAVE_PATH + event_img_link
         await c.message.answer_photo(photo=InputFile(event_img_link), caption=formatted_string)
         await manager.switch_to(EventRegistrationForm.approve_input)
     else:
