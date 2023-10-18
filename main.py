@@ -66,7 +66,10 @@ async def handle_start_command(msg: types.Message):
         markup.row(InlineKeyboardButton("Рег", callback_data=f"page_register:1"))
     markup.row(InlineKeyboardButton("Напомнить", callback_data="reminder:1"))
     event_text, event_img_link = get_event_by_page_number(page_number)
-    event_img_link = IMG_SAVE_PATH + event_img_link
+    if event_img_link != "":
+        event_img_link = IMG_SAVE_PATH + event_img_link
+    else:
+        event_img_link = IMG_SAVE_PATH + "placeholder.jpg"
     await msg.answer_photo(photo=InputFile(event_img_link), caption=event_text, reply_markup=markup, parse_mode="Markdown")
 
 
@@ -87,8 +90,12 @@ async def update_page_markup(message, user_id, call_id, page_number):
         if not if_exists:
             create_record(user_id, event_id)
         event_text, event_img_link = get_event_by_page_number(page_number)
-        event_img_link = IMG_SAVE_PATH + event_img_link
+        if event_img_link != "":
+            event_img_link = IMG_SAVE_PATH + event_img_link
+        else:
+            event_img_link = IMG_SAVE_PATH + "placeholder.jpg"
         event_img_file = InputMediaPhoto(media=InputFile(event_img_link), caption=event_text, parse_mode="Markdown")
+
         await message.edit_media(event_img_file, reply_markup=markup)
     else:
         await update_page_markup(message, user_id, call_id, page_number=1)
