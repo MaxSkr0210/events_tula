@@ -72,6 +72,15 @@ async def handle_start_command(msg: types.Message):
     await msg.answer_photo(photo=InputFile(event_img_link), caption=event_text, reply_markup=markup, parse_mode="Markdown")
 
 
+@dp.message_handler(commands=["alert"])
+async def handle_start_command(msg: types.Message):
+    keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+    keyboard.add(types.KeyboardButton("Открыть", web_app=types.WebAppInfo(url="https://nutenolocal.ru/")))
+    await bot.send_message(chat_id=msg.chat.id,
+                           text="Тест WebApp",
+                           reply_markup=keyboard)
+
+
 async def update_page_markup(message, user_id, call_id, page_number):
     event_id = get_event_object_by_page_number(page_number)[0]
     if_exists, is_registered = check_user_registration(chat_id=user_id, event_id=event_id)
