@@ -64,7 +64,6 @@ async def handle_start_command(msg: types.Message):
         markup.row(InlineKeyboardButton("Анрег", callback_data=f"page_unregister:1"))
     else:
         markup.row(InlineKeyboardButton("Рег", callback_data=f"page_register:1"))
-    markup.row(InlineKeyboardButton("Напомнить", callback_data="reminder:1"))
     event_text, event_img_link = get_event_by_page_number(page_number)
     if event_img_link != "":
         event_img_link = IMG_SAVE_PATH + event_img_link
