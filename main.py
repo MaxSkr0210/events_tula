@@ -75,7 +75,7 @@ async def handle_start_command(msg: types.Message):
 @dp.message_handler(commands=["alert"])
 async def handle_start_command(msg: types.Message):
     keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-    keyboard.add(types.KeyboardButton("Открыть", web_app=types.WebAppInfo(url="https://nutenolocal.ru/")))
+    keyboard.add(types.KeyboardButton("Открыть", web_app=types.WebAppInfo(url="https://intula.info/")))
     await bot.send_message(chat_id=msg.chat.id,
                            text="Тест WebApp",
                            reply_markup=keyboard)
